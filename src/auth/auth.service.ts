@@ -6,7 +6,6 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -17,35 +16,27 @@ export class AuthService {
     ) {}
 
     async register(dto: RegisterDto) {
-        try {
-            const user = await this.credentialsRepo.findOne({
-                where: {
-                    emailId: dto.email
-                }
-            });
-            
-            if(user){
-                throw new ConflictException('User already exist');
-            }
-
-            const response = await axios.post('http://localhost:5000/api/users',dto);
-            console.log(response.data);
-            
-            const salt = await bcrypt.genSalt();
-            const hashedPassword = await bcrypt.hash(dto.password, salt);
-            
-            const creds = this.credentialsRepo.create({
-                emailId: dto.email,
-                hashedPassword,
-            });
-            
-            await this.credentialsRepo.save(creds);
-            
-            return { message: 'Registered successfully' };
-        } catch (error) {
-            console.log(error)
-            throw(error)
+    const user = await this.credentialsRepo.findOne({
+        where: {
+            emailId: dto.email
         }
+    });
+    
+    if(user){
+        throw new ConflictException('User already exist');
+    }
+    
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(dto.password, salt);
+    
+    const creds = this.credentialsRepo.create({
+        emailId: dto.email,
+        hashedPassword,
+    });
+    
+    await this.credentialsRepo.save(creds);
+    
+    return { message: 'Registered successfully' };
     }
 
     async validateUserCredentials(email:string,password: string) {
