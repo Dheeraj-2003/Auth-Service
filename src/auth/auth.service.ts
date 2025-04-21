@@ -20,6 +20,12 @@ export class AuthService {
         @Inject(USER_SERVICE) private readonly userClient: ClientProxy,
     ) {}
 
+    async getUser(query: any){
+        const response =  await lastValueFrom(this.userClient.send({ cmd: 'get-user' },query));
+        console.log(response);
+        return response;
+    }
+
     async register(dto: RegisterDto) {
         try {
             const user = await this.credentialsRepo.findOne({
@@ -66,7 +72,11 @@ export class AuthService {
     }
 
     async login(dto: LoginDto) {
-        const payload = { sub: dto.email };
+        await this.validateUserCredentials(dto.email, dto.password);
+        const user = await this.getUser({
+            email: dto.email,
+        })
+        const payload = { sub: dto.email, userId: user.id, role: user.role  };
         const token = this.jwtService.sign(payload);
 
         return {

@@ -1,8 +1,6 @@
 import { Body, Controller, Post, UseGuards, Request, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { LocalAuthGuard } from './guards/localAuth.guard';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller()
