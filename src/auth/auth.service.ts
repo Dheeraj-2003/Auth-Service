@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Credentials } from '../credentials/credentials.entity';
 import { Repository } from 'typeorm';
@@ -7,6 +7,9 @@ import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import axios from 'axios';
+import { USER_SERVICE } from 'src/common/constants';
+import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +17,7 @@ export class AuthService {
         @InjectRepository(Credentials)
         private credentialsRepo: Repository<Credentials>,
         private jwtService: JwtService,
+        @Inject(USER_SERVICE) private readonly userClient: ClientProxy,
     ) {}
 
     async register(dto: RegisterDto) {
@@ -28,8 +32,8 @@ export class AuthService {
                 throw new ConflictException('User already exist');
             }
 
-            const response = await axios.post('http://localhost:5000/api/users',dto);
-            console.log(response.data);
+            const response =  await lastValueFrom(this.userClient.send({ cmd: 'create-user' },dto));
+            console.log(response);
             
             const salt = await bcrypt.genSalt();
             const hashedPassword = await bcrypt.hash(dto.password, salt);

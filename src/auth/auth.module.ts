@@ -7,6 +7,8 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalStrategy } from './strategies/local.strategy';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { TCP_HOSTS, USER_SERVICE } from 'src/common/constants';
 
 @Module({
     imports: [
@@ -19,7 +21,14 @@ import { LocalStrategy } from './strategies/local.strategy';
           signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '1h' },
         }),
       }),
-      ConfigModule.forRoot(),
+    ClientsModule.register([
+      {
+        name: USER_SERVICE,
+        transport: Transport.TCP,
+        options: TCP_HOSTS.USER_SERVICE
+      }
+    ]),
+    ConfigModule.forRoot(),
     ],
     controllers: [AuthController],
   providers: [AuthService, JwtStrategy,LocalStrategy],

@@ -3,20 +3,19 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { LocalAuthGuard } from './guards/localAuth.guard';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller('auth')
+@Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  @UsePipes(ValidationPipe)
-  async register(@Body() dto: RegisterDto) {
+  @MessagePattern({cmd : 'register'})
+  async register(@Payload() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
-  @UseGuards(LocalAuthGuard)
-  @Post('login')
-  asynclogin(@Request() req) {
-    return this.authService.login(req.user);
+  @MessagePattern({cmd : 'login'})
+  login(@Payload() payload) {
+    return this.authService.login(payload);
   }
 }
